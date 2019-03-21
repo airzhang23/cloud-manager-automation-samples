@@ -1,0 +1,49 @@
+{
+  "name": "{{otc_name}}",
+  "volume": {
+    "exportPolicyInfo": {
+      "policyType": "custom",
+      "ips": [
+        "0.0.0.0/0"
+      ]
+    },
+    "snapshotPolicyName": "default",
+    "name": "vol1",
+    "enableThinProvisioning": true,
+    "enableDeduplication": true,
+    "enableCompression": true,
+    "size": {
+      "size": 100,
+      "unit": "GB"
+    },
+    "tieringPolicy": "auto"
+  },
+  "tenantId": "{{tenant_id}}",
+  "region": "{{region}}",
+  "packageName": "aws_standard",
+  "dataEncryptionType": "AWS",
+  "capacityTier": "S3",
+  "vsaMetadata": {
+    "ontapVersion": "latest",
+    "licenseType": "cot-standard-paygo",
+    "instanceType": "{{ instance_type }}",
+    "useLatestVersion": true
+  },
+  "nssAccount": "CloudProviderAccount-doVAYvCa",
+  "writingSpeedState": "NORMAL",
+  "subnetId": "{{ subnet_id }}",
+  "svmPassword": "Netapp234",
+  "vpcId": "{{vpc_id}}",
+  "ontapEncryptionParameters": null,
+  "ebsVolumeType": "gp2",
+  "ebsVolumeSize": {
+    "size": 1,
+    "unit": "TB",
+    "_identifier": "1 TB"
+  },
+  "awsTags": [],
+  "optimizedNetworkUtilization": false,
+  "instanceTenancy": "default",
+  "iops": null,
+  "cloudProviderAccount": "InstanceProfile"
+}
