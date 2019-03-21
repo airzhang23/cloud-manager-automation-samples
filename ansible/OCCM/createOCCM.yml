@@ -1,0 +1,129 @@
+---
+- name: Create OCCM Server
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+      instance_type: t3.medium
+      security_group: sg-XXXXXXXX #default
+      keypair: key_pair_name
+      vpc_id: vpc-XXXXXXXXX
+      subnet_id: subnet-XXXXXXXX
+      site: test
+      company: Company
+      count: 1
+      client_id: Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC
+      auth0_domain: netapp-cloud-account.auth0.com
+  tasks:
+# Create boto config file
+    - name: Create boto config File
+      blockinfile:
+        create: yes
+        dest: /etc/boto.cfg
+        block: |
+          [Credentials]
+          aws_access_key_id = {{ AWSAccessKey }}
+          aws_secret_access_key = {{ AWSSecretKey }}
+    - name: find latest AMI for server
+      ec2_ami_facts:
+        owners: 679593333241 #don't change
+        region: "{{region}}"
+        filters:
+          name: "OnCommand_Cloud_Manager_*"
+      register: amis
+    - name: now get the latest one
+      set_fact:
+        latest_ami: >
+          {{ amis.images | sort(attribute='creation_date') | last }}
+    - set_fact:
+        sorted_amis: "{{ amis.images | sort(attribute='creation_date') }}"
+    - set_fact:
+        latest_ami: "{{ sorted_amis | last }}"
+    - set_fact:
+        latest_ami_id: "{{ latest_ami.image_id }}"    
+    - debug: msg={{latest_ami_id}}
+# Deploy OCCM Instance from AMI
+    - name: Launch OCCM instance
+      local_action:
+        module: ec2
+        aws_access_key: "{{ AWSAccessKey }}"
+        aws_secret_key: "{{ AWSSecretKey }}"
+        instance_tags:
+            Name: "{{ instancename }}"
+        region: "{{ region }}"
+        keypair: "{{ keypair }}"
+        group_id: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ latest_ami_id }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        assign_public_ip: yes
+        instance_profile_name: "{{ IAMRole }}"
+        count: "{{ count }}"
+        wait: yes
+      register: ec2
+    - name: Wait for SSH to come up
+      wait_for: host={{ item.public_dns_name }} port=22 delay=60 timeout=320 state=started
+      with_items: "{{ ec2.instances }}"
+    - name: Wait for OCCM to come up
+      wait_for: host={{ item.public_dns_name }} port=80 delay=60 timeout=600 state=started
+      with_items: "{{ ec2.instances }}"
+# Create Artifact File
+    - name: Get ec2_info information
+      blockinfile:
+        create: yes
+        dest: ./occm_info.txt
+        block: |
+          OCCM URL: http://{{ item.public_ip }}
+          OCCM DNS Name: {{ item.public_dns_name }}
+      with_items: "{{ ec2.instances }}"
+#Get Token
+    - name: Print Auth Domain
+      debug: msg={{auth0_domain}}
+    - name: Get Token
+      uri:
+        url: https://{{auth0_domain}}/oauth/token
+        method: POST
+        body_format: json
+        return_content: yes
+        body: {"grant_type":"refresh_token", "refresh_token": "{{refToken}}", "client_id": "{{client_id}}"}
+        status_code: 200,204,202
+      register: token_response
+      ignore_errors: no
+    - name: set token & token_type
+      set_fact: token="{{ (token_response.content|from_json).access_token }}"
+    - set_fact: token_type="{{ (token_response.content|from_json).token_type }}"
+    - name: set OCCM IP
+      set_fact: occm_ip="{{ item.public_ip }}"
+      with_items: "{{ ec2.instances }}"
+# Register
+    - name: Register
+      uri:
+        url: http://{{occm_ip}}/occm/api/occm/setup-portal/register
+        method: POST
+        headers:
+           Referer: Ansible
+        return_content: yes
+        status_code: 200,204,202
+        timeout: 100
+      register: register_response  
+      ignore_errors: yes
+    - name: Print Client Id
+      debug: msg={{register_response.json.clientId}}
+# Perform Init
+    - name: Init
+      uri:
+        url: http://{{occm_ip}}/occm/api/occm/setup-portal/init
+        method: POST
+        body_format: json
+        headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: Ansible
+        body: {"adminUser":{"email":"{{portalUserName}}"},"site":"{{site}}","company":"{{company}}"}
+        status_code: 200,204,202
+        timeout: 60
+      register: setup_response  
+      ignore_errors: no
+    - name: OCCM IP
+      debug: msg=http://{{occm_ip}}  
+
+      
