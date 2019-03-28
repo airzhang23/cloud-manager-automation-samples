@@ -1,0 +1,26 @@
+---
+- name: Get facts for one resource group
+  hosts: localhost
+  connection: local
+  gather_facts: False  
+  tasks:
+    - name: get az ResourceGroup facts
+      azure_rm_resourcegroup_facts:
+        name: "{{az_rg}}"
+      register: azure_resourcegroups
+    - name: get az VirtualNetwork facts
+      azure_rm_virtualnetwork_facts:
+        resource_group: "{{az_rg}}"
+        name: "{{az_vn}}"
+      register: azure_virtualnetworks       
+    - name: set list_length
+      set_fact: rg_exists="{{ azure_resourcegroups.ansible_facts.azure_resourcegroups | length | bool }}"
+    - set_fact: vn_exists="{{ azure_virtualnetworks.ansible_facts.azure_virtualnetworks | length | bool }}"
+    - set_fact: sn_exists="{{ az_sn in (azure_virtualnetworks.ansible_facts.azure_virtualnetworks | json_query("[].properties.subnets[].name")) }}"
+    - set_fact: exists_resources="{{ use_existing_resources | bool }}"
+    - name: Check for Errors
+      fail:
+        msg: "You have set use_existing_resources=false BUT The following resources already exists: 
+              {{ 'ResourceGroup:' + az_rg if rg_exists else '' }} {{ 'VirtualNetwork:' + az_vn if vn_exists else '' }} {{ 'Subnet:' + az_sn if sn_exists else '' }}
+              This is to prevent overwriting existing resources"
+      when:  not exists_resources and (rg_exists or vn_exists or sn_exists)
