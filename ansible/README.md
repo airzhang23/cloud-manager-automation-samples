@@ -22,12 +22,23 @@ Generate refresh token for CloudManager
 "AWSAccessKey=[access key] AWSSecretKey=[secret Key] region=us-west-2 instancename=occmTest IAMRole='' refToken=[refresh token string] portalUserName=[portal user mail]"*
 
 
-## Create CVO With Ansible
+## Create AWS CVO With Ansible
 ### Needed variables
 * occmIp: the IP of the Cloud Manager
 * refToken: the refresh token string
 
-*ansible-playbook createOTC.yml --extra-vars "occmIp=[Cloud Manager IP] refToken=[refresh token string]"*
+*ansible-playbook createCVO.yml --extra-vars "occmIp=[Cloud Manager IP] refToken=[refresh token string]"*
+
+## Create AWS HA CVO With Ansible
+### Needed variables
+* occmIp: the IP of the Cloud Manager
+* refToken: the refresh token string
+* clusterFloatingIP: Cluster floating IP
+* dataFloatingIP: First node data IP
+* dataFloatingIP2: Second node data IP
+* svmFloatingIP: SVM floating IP
+
+*ansible-playbook createHA-CVO.yml --extra-vars "occmIp=[Cloud Manager IP] refToken=[refresh token string] clusterFloatingIP=1.1.1.1 dataFloatingIP=2.2.2.2 dataFloatingIP2=3.3.3.3 svmFloatingIP=4.4.4.4"*
 
 ## Create Aggregate With Ansible
 ### Needed variables
