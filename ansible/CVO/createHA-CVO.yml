@@ -7,18 +7,16 @@
       instance_type: m4.2xlarge
       region: us-west-2
       otc_name: testAnsible
-      vpc_id: vpc-58b1553c
-      node1SubnetId: subnet-f11ef095
-      node2SubnetId: subnet-ba5654cd
-      mediatorSubnetId: subnet-3e085067
-      routeTableIds: rtb-0d0cf369
+      vpc_id: vpc-XXXXXXX
+      node1SubnetId: subnet-XXXXXXX
+      node2SubnetId: subnet-XXXXXXX
+      mediatorSubnetId: subnet-XXXXXXX
+      routeTableIds: rtb-XXXXXXX
       cloud_provider_account: InstanceProfile
-      key_pair: occm_qa
+      key_pair: XXXXXXX
       occm_ip: "{{occmIp}}"
-      client_id: O6AHa7kedZfzHaxN80dnrIcuPBGEUvEv
-      auth0_domain: staging-netapp-cloud-account.auth0.com
-      #client_id: Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC
-      #auth0_domain: netapp-cloud-account.auth0.com
+      client_id: Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC
+      auth0_domain: netapp-cloud-account.auth0.com
   tasks:
 # Create Template File
     - name: Print Auth Domain
