@@ -38,7 +38,7 @@ Generate refresh token for CloudManager
 * dataFloatingIP2: Second node data IP
 * svmFloatingIP: SVM floating IP
 
-**vpc_id, node1SubnetId, node2SubnetId, mediatorSubnetId and key pair need to be set in the playbook_**
+**vpc_id, node1SubnetId, node2SubnetId, mediatorSubnetId and key pair need to be set in the playbook**
 
 *ansible-playbook createHA-CVO.yml --extra-vars "occmIp=[Cloud Manager IP] refToken=[refresh token string] clusterFloatingIP=1.1.1.1 dataFloatingIP=2.2.2.2 dataFloatingIP2=3.3.3.3 svmFloatingIP=4.4.4.4"*
 
