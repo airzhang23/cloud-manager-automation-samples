@@ -4,25 +4,26 @@
 ## Get your refresh token
 Go to https://services.cloud.netapp.com/refresh-token
 
-Generate refresh token for CloudManager
+Generate refresh token for CloudManager ( You need to have a Cloud Central Account )
 
-## Create OCCM With Ansible
-### Needed variables
+## Create Cloud Manager (OCCM) With Ansible
+### Steps
+1. Use the createOCCM.yml file from above. 
+1. The file needs to be updated with the following details ( Dont edit anything else)
+**vpc, subnet, key pair, security group ( needs to be pre-created in your AWS Account ) , company and site need to be set in the playbook**
+1. We need to run the following command to create Cloud Manager ( The variables needed for the command are mentioned below along with description. Do not keep the square brackets in the final command )
+
+*ansible-playbook createOCCM.yml --extra-vars "AWSAccessKey=[access key] AWSSecretKey=[secret Key] region=us-west-2 instancename=occmTest IAMRole='' refToken=[refresh token string] portalUserName=[portal user mail]"*
+
 * AWSAccessKey: The IP of the Cloud Manager
 * AWSSecretKey: The refresh token string
 * instancename: the name of the OCCM
 * IAMRole: Name of the IAM role to assign [optional]
-* refToken: The name of the aggregate to create
-* IAMRole: The disk type to create [gp2|st1|sc1] 
-* portalUserName: disk size to create in TB [1|2|4|8|16]
-
-**_vpc, subnet, key pair, SG, company and Site need to be set in the playbook_**
-
-*ansible-playbook createOCCM.yml --extra-vars 
-"AWSAccessKey=[access key] AWSSecretKey=[secret Key] region=us-west-2 instancename=occmTest IAMRole='' refToken=[refresh token string] portalUserName=[portal user mail]"*
+* refToken: refresh for Cloud Central which was obtained earlier
+* portalUserName: Email Address to be associated with Cloud Manager. 
 
 
-## Create AWS CVO With Ansible
+## Create AWS Single Node CVO With Ansible
 ### Needed variables
 * occmIp: the IP of the Cloud Manager
 * refToken: the refresh token string
@@ -65,3 +66,4 @@ Generate refresh token for CloudManager
 ## Authors
 
 * **TLV DevOps Team** - *Initial work* 
+

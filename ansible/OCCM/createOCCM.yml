@@ -120,7 +120,7 @@
            Referer: Ansible
         body: {"adminUser":{"email":"{{portalUserName}}"},"site":"{{site}}","company":"{{company}}"}
         status_code: 200,204,202
-        timeout: 60
+        timeout: 180
       register: setup_response  
       ignore_errors: no
     - name: OCCM IP
