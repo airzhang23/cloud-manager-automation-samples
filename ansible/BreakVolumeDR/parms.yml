@@ -1,9 +1,9 @@
 ---
 #parms.yml
 # OCCM_Params
-refToken: "_j18-VXx_tmEAfZFzRSgh9b76inqtIe_JsqkHPtgoOyhc"
+refToken: "REF_TOKEN"
 ## IP of the OCCM 
-occm_ip: "13.66.223.188"
+occm_ip: "1.1.1.1"
 ## Destination CVO of Volume Replication
 weName: "cvo2td"
 ## OCCM Environments Type that you work on ### aws/awsha/azure/azureha/gcp ###
