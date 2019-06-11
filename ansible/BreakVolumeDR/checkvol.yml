@@ -4,12 +4,12 @@
   connection: local
   gather_facts: False
   vars_files:
-      var/main.yml
+      parms.yml
   vars:
       occm_ip: "{{occmIp}}"
-      client_id: O6AHa7kedZfzHaxN80dnrIcuPBGEUvEv
+      client_id: Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC
      #client_id: JG9YwwVjcw00Fah5DQkaVQlHrdPBnMpm
-      auth0_domain: staging.netapp-cloud-account.auth0.com
+      auth0_domain: netapp-cloud-account.auth0.com
   tasks:
   ## Set Enviormet Working Space (AWS/Azure/Google)
     - debug: msg="{{occmEnv}}"
@@ -87,4 +87,4 @@
       debug: msg={{repvol.relationshipStatus}}
       register: repvol.relationshipStatus
     - name: Write  Status
-      local_action: shell echo "{{ repvol.relationshipStatus }}" > /tmp/.output  
+      local_action: shell echo "{{ repvol.relationshipStatus }}" > .output  
