@@ -16,7 +16,7 @@
 	  - refToken: Go to https://services.cloud.netapp.com/refresh-token
 		Generate refresh token for CloudManager ( You need to have a Cloud Central Account )
 	  - occm_ip: IP of the OCCM 
-	  - weNameWorking Enviorment that contain destination volume (DR) 
+	  - weName: Working Enviorment that contain destination volume (DR) 
 	  - occmEnv: Cloud Service (aws/azure/gcp) 
 	  - destVolName: Name of the volume that need to be break 
 
