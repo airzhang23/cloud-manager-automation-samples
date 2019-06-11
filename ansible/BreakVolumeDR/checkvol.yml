@@ -1,0 +1,90 @@
+---
+- name: Inside Check For Checking Volume Status  #
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+      var/main.yml
+  vars:
+      occm_ip: "{{occmIp}}"
+      client_id: O6AHa7kedZfzHaxN80dnrIcuPBGEUvEv
+     #client_id: JG9YwwVjcw00Fah5DQkaVQlHrdPBnMpm
+      auth0_domain: staging.netapp-cloud-account.auth0.com
+  tasks:
+  ## Set Enviormet Working Space (AWS/Azure/Google)
+    - debug: msg="{{occmEnv}}"
+    - name: Set Enviroment Detail For Cloud Portal 
+      set_fact: envType="vsa"
+      when: occmEnv == 'aws'
+    - name: Set Enviroment Detail For AWS-HA
+      set_fact: envType="vsa/ha"
+      when:  occmEnv == 'awsha'
+    - name: Set Enviroment Detail For Azure
+      set_fact: envType="azure/vsa"
+      when: occmEnv == 'azure'
+    - name: Set Enviroment Detail For Azure-HA
+      set_fact: envType="azure/ha"
+      when: occmEnv == 'azureha'
+    - name: Set Enviroment Detail For GCP
+      set_fact: envType="gcp/vsa"
+      when: occmEnv == 'gcp'
+    - debug: msg="{{envType}}"
+    - name: Print Auth Domain
+      debug: msg={{auth0_domain}}
+    - name: Get Token
+      uri:
+        url: https://{{auth0_domain}}/oauth/token
+        method: POST
+        body_format: json
+        return_content: yes
+        body: {"grant_type":"refresh_token", "refresh_token": "{{refToken}}", "client_id": "{{client_id}}"}
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+      register: token_response
+      ignore_errors: no
+    - name: set token & token_type
+      set_fact: token="{{ (token_response.content|from_json).access_token }}"
+    - set_fact: token_type="{{ (token_response.content|from_json).token_type }}"
+  #  - debug: msg={{token,token_type}}  
+    - name: Get CVO Name
+      uri:
+        url: "http://{{occm_ip}}/occm/api/{{envType}}/working-environments"
+        method: GET
+        headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+      register: we_response
+ #   - name: Print Workin Enviorment 
+ #     debug: msg={{we_response}}
+    - name: "Get Working Enviorment with given Name"
+      set_fact: we={{item}}
+      loop: "{{ we_response.json | json_query(we_query) }}"
+      vars:
+        we_query: "[?name=='{{weName}}'].{publicId: publicId, svmName: svmName, tenantId: tenantId}"
+    
+    - name: Get All Replication Volumes For CVO name - {{weName}}
+      uri:
+         url: "http://{{occm_ip}}/occm/api/replication/status/{{we.publicId}}"
+         method: GET
+         headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+         status_code: 200,204,202
+         timeout: 180
+         validate_certs: no
+         X-Occm-Bypass-Cache: "true"
+      register: repvol_response
+    - name: "Get Update Status Of Volume"
+      set_fact: repvol={{item}}
+      loop: "{{ repvol_response.json | json_query(repvol_query) }}"
+      vars:
+        repvol_query: "[?destination.volumeName=='{{ destVolName }}'].{clusterName: destination.clusterName, svmName: destination.svmName, mirrorState: mirrorState, relationshipStatus: relationshipStatus, OrigVolumeName: source.volumeName, OrigClusterName: source.clusterName}"  
+    - name: Printing Replication Status of Volume {{destVolName}}
+      debug: msg={{repvol.relationshipStatus}}
+      register: repvol.relationshipStatus
+    - name: Write  Status
+      local_action: shell echo "{{ repvol.relationshipStatus }}" > /tmp/.output  
