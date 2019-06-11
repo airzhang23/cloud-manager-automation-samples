@@ -127,7 +127,7 @@
         policy_query: "[?name=='{{repvol.OrigVolumeName}}'].{ip: exportPolicyInfo.ips}"
 ## Check Volume Status Before Break in a Loop 
     - name: Check Volume Status 
-      shell: ansible-playbook checkvol.yml ; sleep 10; cat /tmp/.output
+      shell: ansible-playbook checkvol.yml ; sleep 10; cat .output
       register: volstat
       until: volstat.stdout.find("idle") > -1
       changed_when: false
