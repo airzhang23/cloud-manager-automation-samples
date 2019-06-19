@@ -1,0 +1,182 @@
+---
+- name: Main Execution 
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+      parms.yml
+  vars:
+      occm_ip: "{{occmIp}}"
+      client_id: Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC
+      auth0_domain: netapp-cloud-account.auth0.com
+      occmEnv: "{{occmEnv}}"
+  tasks:
+## Set Environment Working Space (AWS/Azure/Google)
+    - debug: msg="{{occmEnv}}"
+    - name: Set Enviroment Detail For Cloud Portal 
+      set_fact: envType="vsa"
+      when: occmEnv == 'aws'
+    - name: Set Environment Detail For AWS-HA
+      set_fact: envType="vsa/ha"
+      when:  occmEnv == 'awsha'
+    - name: Set Environment Detail For Azure
+      set_fact: envType="azure/vsa"
+      when: occmEnv == 'azure'
+    - name: Set Environment Detail For Azure-HA
+      set_fact: envType="azure/ha"
+      when: occmEnv == 'azureha'
+    - name: Set Environment Detail For GCP
+      set_fact: envType="gcp/vsa"
+      when: occmEnv == 'gcp'
+    - name: Validate OCCM environment
+      fail: msg="Failed to get cloud OCCM to work with --> {{occmEnv}} ?"
+      when: envType is undefined 
+   # - debug: msg="{{envType}}"
+## Get Auth0 Token     
+    - name: Print Auth Domain
+      debug: msg={{auth0_domain}}
+    - name: Get Token 
+      uri:
+        url: https://{{auth0_domain}}/oauth/token
+        method: POST
+        body_format: json
+        return_content: yes
+        body: {"grant_type":"refresh_token", "refresh_token": "{{refToken}}", "client_id": "{{client_id}}"}
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+      register: token_response
+      ignore_errors: no
+    - name: set token & token_type
+      set_fact: token="{{ (token_response.content|from_json).access_token }}"
+    - set_fact: token_type="{{ (token_response.content|from_json).token_type }}"
+    - debug: msg={{token,token_type}}  
+## Get CVO Detail 
+    - name: Get CVO Name
+      uri:
+        url: "http://{{occm_ip}}/occm/api/{{envType}}/working-environments"
+        method: GET
+        headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+      register: we_response
+    - name: Print Working Environment 
+      debug: msg={{we_response}}
+## Set Parameters According to CVO 
+    - name: Get Working Environment with given Name
+      set_fact: we={{item}}
+      loop: "{{ we_response.json | json_query(we_query) }}"
+      vars:
+        we_query: "[?name=='{{weName}}'].{publicId: publicId, svmName: svmName, tenantId: tenantId, weType: workingEnvironmentType}"
+## Exit If CVO is not apear 
+    - name: Exit if CVO name does not exists
+      fail: msg="Failed to find given CVO name  - {{weName}}"
+      when: we is undefined
+## Get Replication Volume For Spespic CVO And Set Paramters  
+    - name: Get All Replication Volumes For CVO name - {{weName}}
+      uri:
+        url: "http://{{occm_ip}}/occm/api/replication/status/{{we.publicId}}"
+        method: GET
+        headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+      register: repvol_response
+    - name: Print Replication Volume Response 
+      debug: msg={{repvol_response}}
+    - name: Get Replication Volume  with given Name - '{{ destVolName }}'
+      set_fact: repvol={{item}}
+      loop: "{{ repvol_response.json | json_query(repvol_query) }}"
+      vars:
+        repvol_query: "[?destination.volumeName=='{{ destVolName }}'].{clusterName: destination.clusterName, svmName: destination.svmName, mirrorState: mirrorState, relationshipStatus: relationshipStatus, OrigVolumeName: source.volumeName, OrigClusterName: source.clusterName,  OrigsvmName: source.svmName, weEnvSource: source.workingEnvironmentId}"
+## Update SnapMirror volume with Late state Data 
+    - name: Update Data for volume - '{{ destVolName }}' Before Break
+      uri:
+       url: "http://{{occm_ip}}/occm/api/replication/update/{{we.publicId}}/{{repvol.svmName}}/{{destVolName}}"
+       method: POST
+       headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+       status_code: 200,204,202
+       timeout: 180
+       validate_certs: no
+       ignore_errors: yes
+## Get Export Policy Details From Source Volume 
+    - name: Get Policy From Source Volume 
+      uri:
+        url: "http://{{occm_ip}}/occm/api/{{envType}}/volumes?workingEnvironmentId={{repvol.weEnvSource}}"
+        method: GET
+        headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+      register: policy_response
+    - name: Print Policy Source Details 
+      debug: msg={{policy_response}}
+    - name: Get Policy Source Details From Source Volume Name
+      set_fact: policy={{item}}
+      loop: "{{ policy_response.json | json_query(policy_query) }}"
+      vars:
+        policy_query: "[?name=='{{repvol.OrigVolumeName}}'].{ip: exportPolicyInfo.ips}"
+## Check Volume Status Before Break in a Loop 
+    - name: Check Volume Status 
+      shell: ansible-playbook checkvol.yml ; sleep 10; cat .output
+      register: volstat
+      until: volstat.stdout.find("idle") > -1
+      changed_when: false
+      retries: 3
+      delay: 5
+## Breaking Replication 
+    - name: Breaking Replication For {{destVolName}}
+      uri:
+       url: "http://{{occm_ip}}/occm/api/replication/break/{{we.publicId}}/{{repvol.svmName}}/{{destVolName}}"
+       method: POST
+       headers:
+          Authorization: "{{token_type}} {{ token }}"
+          Referer: "Ansible"
+       status_code: 200,204,202
+       timeout: 180
+       validate_certs: no   
+## Update Export Policy After Break 
+    - name: Update Policy After Breaking Volume   
+      uri:
+        url: "http://{{occm_ip}}/occm/api/{{envType}}/volumes/{{we.publicId}}/{{repvol.svmName}}/{{destVolName}}"
+        method: PUT
+        body_format: json
+        body: {exportPolicyInfo: {"name":"export-{{repvol.svmName}}-{{destVolName}}","policyType":"custom", "ips":"{{policy.ip}}"}} 
+        headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+           X-Occm-Bypass-Cache: "true"
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+        return_content: yes
+## Print Out All Volume created 
+    - name: Get All Volumes Information For CVO name - {{weName}}
+      uri:
+        url: "http://{{occm_ip}}/occm/api/replication/status/{{we.publicId}}"
+        method: GET
+        headers:
+           Authorization: "{{token_type}} {{ token }}"
+           Referer: "Ansible"
+        status_code: 200,204,202
+        timeout: 180
+        validate_certs: no
+      register: repvol_response
+ #   - name: Print Replication Volume Response 
+ #     debug: msg={{repvol_response}}
+    - name: Get Replication Volume  with given Name - '{{ destVolName }}'
+      set_fact: repvol={{item}}
+      loop: "{{ repvol_response.json | json_query(repvol_query) }}"
+      vars:
+        repvol_query: "[?destination.volumeName=='{{ destVolName }}'].{ VolumeName: destination.volumeName, svmName: destination.svmName, mirrorState: mirrorState}"  
+    - name: Print Out Rsoults 
+      debug: msg="The Volume {{repvol.VolumeName}} {{repvol.svmName}} , MirrorState is -->  {{repvol.mirrorState}}"

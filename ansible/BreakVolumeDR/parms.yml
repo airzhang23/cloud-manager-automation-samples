@@ -1,0 +1,13 @@
+---
+#parms.yml
+# OCCM_Params
+refToken: "REF_TOKEN"
+## IP of the OCCM 
+occm_ip: "1.1.1.1"
+## Destination CVO of Volume Replication
+weName: "cvo2td"
+## OCCM Environments Type that you work on ### aws/awsha/azure/azureha/gcp ###
+occmEnv: "azure" 
+## Destination Volume that need to be broke 
+destVolName: "vol1a_copy"
+mirrorstatus: "idle"
