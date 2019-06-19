@@ -1,11 +1,11 @@
-# Samples for Terrafrom + Ansible and Cloud Manager
+# Samples for Terraform + Ansible and Cloud Manager
 ##
-## Create OCCM With Terrafrom + Ansible
+## Create OCCM With Terraform + Ansible
 ##
 ##
 
 ### Prerequisites
-* Download terrafrom from: https://www.terraform.io/downloads.html
+* Download terraform from: https://www.terraform.io/downloads.html
 * Follow the instructions and add terraform executable to PATH: https://learn.hashicorp.com/terraform/getting-started/install.html 
 * Edit your ~/.aws/credentials and add a terraform section:
   ```terraform
