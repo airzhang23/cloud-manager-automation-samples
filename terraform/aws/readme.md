@@ -33,7 +33,7 @@ auth0_domain            = "netapp-cloud-account.auth0.com"   # default auth0 dom
 
 ### Run Terrafrom 
 * cd to the directory and make sure you have all 4 files: 
-```terrafrom
+```terraform
 main.tf
 occm_setup.yaml
 outputs.tf
@@ -41,12 +41,12 @@ terraform.tfvars
 ```
 * Run the following commands:
 ```terrafrom
-terrafrom init
-terrafrom plan
-terrafrom apply
+terraform init
+terraform plan
+terraform apply
 ```
 * Expected output with be the IP of the instance created with OCCM installed:
-```terrafrom
+```terraform
 Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 
 Outputs:
