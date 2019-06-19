@@ -1,14 +1,14 @@
-# Samples for Terrafrom + Ansible and Cloud Manager
+# Samples for Terraform + Ansible and Cloud Manager
 ##
-## Create OCCM With Terrafrom + Ansible on Azure
+## Create OCCM With Terraform + Ansible on Azure
 ##
 ##
 
 ### Prerequisites
-* Download terrafrom from: https://www.terraform.io/downloads.html
+* Download Terraform from: https://www.terraform.io/downloads.html
 * Follow the instructions and add terraform executable to PATH: https://learn.hashicorp.com/terraform/getting-started/install.html
 * Add the following environoment vairables to set your credentials:
-  ```terrafrom
+  ```terraform
   export ARM_CLIENT_ID="xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" && export AZURE_CLIENT_ID=$ARM_CLIENT_ID
   export ARM_CLIENT_SECRET="xxxxxxx" && AZURE_SECRET=$ARM_CLIENT_SECRET && AZURE_SECRET=${AZURE_SECRET//+/%2B} && export AZURE_SECRET=${AZURE_SECRET//=/%3D}
   export ARM_SUBSCRIPTION_ID="xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" && export AZURE_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
@@ -17,7 +17,7 @@
 * Install Ansible >2.7 from: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html  
 * Install Ansible Azure extension from: https://docs.ansible.com/ansible/latest/scenario_guides/guide_azure.html
 * Here is an example installtion on Centos 7.5:
-  ```terrafrom
+  ```terraform
   # curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
   # python get-pip.py
   # pip install ansible==2.7
@@ -27,7 +27,7 @@
   # cp terraform /usr/sbin/
   ```   
 * Check Ansible and Terraform versions Installed:
-  ```terrafrom
+  ```terraform
   # ansible --version
     ansible 2.7.0
       config file = None
@@ -41,9 +41,9 @@
   + provider.null v2.1.0      
   ```   
 
-### Madatory variables in terrafrom.tfvars
+### Edit Madatory variables in terraform.tfvars
 * Fill in the empty parameters to setup your environment:
-  ```terrafrom
+  ```terraform
   ###################################################
   # Vars
   ###################################################
@@ -75,13 +75,13 @@
   ```
 ### New Resources vs. Existing Resources (use_existing_resources)
 * By default, we set the use_existing_resources parammeter to "false", 
-this means that terrafrom will create all NEW resources: Resource Group, Vnet, Subnet, NIC, PublicIP, Security Group, VM, Disk
+this means that terraform will create all NEW resources: Resource Group, Vnet, Subnet, NIC, PublicIP, Security Group, VM, Disk
 * If you want OCCM resources to be created in an existing Resource Group under a given Vnet and Subnet you can set use_existing_resources=true and provide existing names for these resources (resource_group, virtual_network, subnet_id)
-* Once all parameters are set and verified continue to Run Terrafrom step
+* Once all parameters are set and verified continue to Run Terraform step
 
-### Run Terrafrom 
+### Run Terraform 
 * cd to the directory and make sure you have all 6 files: 
-    ```terrafrom
+    ```terraform
     ./outputs.tf
     ./main.tf
     ./occm_setup.yaml
@@ -91,14 +91,14 @@ this means that terrafrom will create all NEW resources: Resource Group, Vnet, S
     ```
 * Run the following commands:
 (In each step carfuly review the instances that are planned and will be created)
-    ```terrafrom
-    terrafrom init
-    terrafrom plan 
-    terrafrom apply
+    ```terraform
+    terraform init
+    terraform plan 
+    terraform apply
     ```
 
 * Expected output with be the IP of the instance created with OCCM installed:
-    ```terrafrom
+    ```terraform
     Apply complete! Resources: 8 added, 0 changed, 0 destroyed.
     
     Outputs:
