@@ -51,14 +51,14 @@ it may take around 6 minutes to complete and you will see the following output o
 
 ```
 ...
-######  Creating resource group 'WK_TEST1'  ######                                                                                                                                                        Account                              SubscriptionName TenantId                             Environment
+######  Creating resource group 'RG_NAME'  ######                                                                                                                                                        Account                              SubscriptionName TenantId                             Environment
 -------                              ---------------- --------                             -----------
 
 ######  The Cloud Manager IP is: x.x.x.x ######
 Waiting for OCCM: x.x.x.x to be up...
 OCCM in IP address x.x.x.x is up
 Registering OCCM
-Client ID is:ZaGwktPzGz0g6aw4W6YQdY2se5XjdW7E
+Client ID is:xxxxxxxxxxxxxxxxxxx
 Getting token from auth0
 Calling init
 
