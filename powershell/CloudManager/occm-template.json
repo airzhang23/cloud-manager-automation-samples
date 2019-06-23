@@ -1,0 +1,228 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "eastus"
+        },
+        "virtualMachineName": {
+            "type": "string"
+        },
+        "virtualMachineSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3"
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "virtualNetworkId": {
+            "type": "string"
+        },
+        "networkInterfaceName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('virtualMachineName'),'-nic')]"
+        },
+        "networkSecurityGroupName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('virtualMachineName'),'-nsg')]"
+        },
+        "adminPassword": {
+            "type": "securestring"
+        },
+        "subnetId": {
+            "type": "string"
+        },
+        "publicIpAddressName": {
+            "type": "string",
+            "defaultValue": "[concat(parameters('virtualMachineName'),'-ip')]"
+        },
+        "publicIpAddressType": {
+            "type": "string",
+            "defaultValue": "Dynamic"
+        },
+        "publicIpAddressSku": {
+            "type": "string",
+            "defaultValue": "Basic"
+        },
+        "msiExtensionName": {
+            "type": "string",
+            "defaultValue": "ManagedIdentityExtensionForLinux"
+        }
+    },
+    "variables": {
+        "vnetId": "[parameters('virtualNetworkId')]",
+        "subnetRef": "[parameters('subnetId')]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('virtualMachineName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-04-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
+            ],
+            "properties": {
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachineName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "netapp",
+                        "offer": "netapp-oncommand-cloud-manager",
+                        "sku": "occm-byol",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
+                    },
+                    "dataDisks": []
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]"
+                        }
+                    ]
+                }
+            },
+            "plan": {
+                "name": "occm-byol",
+                "publisher": "netapp",
+                "product": "netapp-oncommand-cloud-manager"
+            },
+            "identity": {
+                "type": "systemAssigned"
+            }
+        },
+        {
+            "apiVersion": "2017-12-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('virtualMachineName'),'/', parameters('msiExtensionName'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', parameters('virtualMachineName'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.ManagedIdentity",
+                "type": "[parameters('msiExtensionName')]",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "port": 50342
+                }
+            }
+        },
+        {
+            "name": "[parameters('networkInterfaceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-04-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIpAddresses/', parameters('publicIpAddressName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": {
+                                "id": "[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+                            }
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]"
+                }
+            }
+        },
+        {
+            "name": "[parameters('publicIpAddressName')]",
+            "type": "Microsoft.Network/publicIpAddresses",
+            "apiVersion": "2017-08-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIpAllocationMethod": "[parameters('publicIpAddressType')]"
+            },
+            "sku": {
+                "name": "[parameters('publicIpAddressSku')]"
+            }
+        },
+        {
+            "name": "[parameters('networkSecurityGroupName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-01-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "http",
+                        "properties": {
+                            "priority": 1010,
+                            "protocol": "TCP",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceApplicationSecurityGroups": [],
+                            "destinationApplicationSecurityGroups": [],
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "80"
+                        }
+                    },
+                    {
+                        "name": "https",
+                        "properties": {
+                            "priority": 1020,
+                            "protocol": "TCP",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceApplicationSecurityGroups": [],
+                            "destinationApplicationSecurityGroups": [],
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "443"
+                        }
+                    },
+                    {
+                        "name": "ssh",
+                        "properties": {
+                            "priority": 1030,
+                            "protocol": "TCP",
+                            "access": "Allow",
+                            "direction": "Inbound",
+                            "sourceApplicationSecurityGroups": [],
+                            "destinationApplicationSecurityGroups": [],
+                            "sourceAddressPrefix": "*",
+                            "sourcePortRange": "*",
+                            "destinationAddressPrefix": "*",
+                            "destinationPortRange": "22"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {
+        "publicIpAddressName": {
+            "type": "string",
+            "value": "[parameters('publicIpAddressName')]"
+        }
+    }
+}

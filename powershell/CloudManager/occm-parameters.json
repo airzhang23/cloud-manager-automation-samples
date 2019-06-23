@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "eastus"
+        },
+        "virtualMachineName": {
+            "value": "CloudManagerVM"
+        },
+        "adminUsername": {
+            "value": "testuser"
+        },
+        "adminPassword": {
+            "value": "Password123456"
+        },
+        "virtualNetworkId": {
+            "value": "/subscriptions/xxxxxxx-xxxxxxx-xxxx-xxxxxxxxxxxx/resourceGroups/occm_group_eastus/providers/Microsoft.Network/virtualNetworks/Vnet1"
+        },
+        "subnetId": {
+            "value": "/subscriptions/xxxxxxx-xxxxxxx-xxxx-xxxxxxxxxxxx/resourceGroups/occm_group_eastus/providers/Microsoft.Network/virtualNetworks/Vnet1/subnets/Subnet1"
+        }
+    }
+}
