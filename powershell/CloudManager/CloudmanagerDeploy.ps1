@@ -103,6 +103,7 @@ $body = @{
 $header = @{
  "Accept"="application/json"
  "Content-Type"="application/json"
+ "Referer"="pwsh"
 }
 
 $tokenResponse = Invoke-RestMethod -Uri "https://netapp-cloud-account.auth0.com/oauth/token" -Method 'Post' -Body $body -Headers $header
@@ -117,6 +118,7 @@ $initHeader = @{
  "Accept"="application/json"
  "Content-Type"="application/json"
  "Authorization"="$token"
+ "Referer"="pwsh"
 }
 
 $initBody = '{"adminUser":{"email":"' + $PortalUserName + '"},"site":"' + $site + '","company":"' + $company + '"}'
