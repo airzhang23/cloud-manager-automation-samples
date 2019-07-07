@@ -20,7 +20,7 @@ vm_admin_password       = ""                                             # admin
 instance_type           = "Standard_DS1_v2"                              # instance type             
 ###################################################
 ansible_prerequisites   = "./check_az_rg.yaml"                           # default path to ansible prerequisites file
-ansible_provision_file  = "../../ansible/playbooks/OCCM/occm_setup.yaml" # deafult path to absibel playbook file  
+ansible_provision_file  = "../../ansible/OCCM/occm_setup.yaml"           # deafult path to absibel playbook file  
 ###################################################
 refresh_token           = ""                                             # private refresh token                               
 client_id               = "Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC"             # default auth0 id
