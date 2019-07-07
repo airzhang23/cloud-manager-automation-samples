@@ -58,11 +58,10 @@
 * Once all parameters are set and verified continue to Run Terraform step
 
 ### Run Terraform 
-* cd to the directory and make sure you have all 5 files: 
+* cd to the directory and make sure you have all 4 files: 
     ```terraform
     ./outputs.tf
     ./main.tf
-    ./occm_setup.yaml
     ./terraform.tfvars
     ./readme.md
     ```

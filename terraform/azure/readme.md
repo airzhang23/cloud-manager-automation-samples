@@ -80,11 +80,10 @@ this means that terrafrom will create all NEW resources: Resource Group, Vnet, S
 * Once all parameters are set and verified continue to Run Terrafrom step
 
 ### Run Terrafrom 
-* cd to the directory and make sure you have all 6 files: 
+* cd to the directory and make sure you have all 5 files: 
     ```terrafrom
     ./outputs.tf
     ./main.tf
-    ./occm_setup.yaml
     ./terraform.tfvars
     ./readme.md
     ./check_az_rg.yaml
