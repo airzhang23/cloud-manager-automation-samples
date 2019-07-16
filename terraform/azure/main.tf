@@ -34,7 +34,8 @@ resource "null_resource" "ansible-prerequisites" {
 
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-#    subscription_id  = "${var.subscription_id}"
+    subscription_id  = "${var.subscription_id}"
+    #version = "=2.0.0"
 #    client_id       = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 #    client_secret   = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 #    tenant_id       = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -58,8 +59,8 @@ data "azurerm_resource_group" "occmgroup" {
 resource "azurerm_virtual_network" "occmvnet" {
   count               = "${var.use_existing_resources ? 0 : 1}"      
   name                = "${var.virtual_network}"
-  resource_group_name = "${azurerm_resource_group.occmgroup.name}"
-  location            = "${azurerm_resource_group.occmgroup.location}"
+  resource_group_name = "${azurerm_resource_group.occmgroup[0].name}"
+  location            = "${azurerm_resource_group.occmgroup[0].location}"
   address_space       = ["10.0.0.0/16"]
 }
 
@@ -72,8 +73,8 @@ data "azurerm_virtual_network" "occmvnet" {
 resource "azurerm_subnet" "occmsubnet" {
   count                = "${var.use_existing_resources ? 0 : 1}"      
   name                 = "${var.subnet_id}"
-  resource_group_name  = "${azurerm_resource_group.occmgroup.name}"
-  virtual_network_name = "${azurerm_virtual_network.occmvnet.name}"
+  resource_group_name  = "${azurerm_resource_group.occmgroup[0].name}"
+  virtual_network_name = "${azurerm_virtual_network.occmvnet[0].name}"
   address_prefix       = "10.0.1.0/24"
 }
 
@@ -90,7 +91,7 @@ resource "azurerm_public_ip" "occmpublicip" {
     resource_group_name          = "${data.azurerm_resource_group.occmgroup.name}"
     allocation_method            = "Dynamic"
 
-    tags {
+    tags = {
         environment = "OCCM Demo"
     }
 }
@@ -143,7 +144,7 @@ resource "azurerm_network_security_group" "occmnsg" {
         destination_address_prefix = "*"
     }    
 
-    tags {
+    tags = {
         environment = "OCCM Demo"
     }
 }
@@ -162,7 +163,7 @@ resource "azurerm_network_interface" "occmnic" {
         public_ip_address_id          = "${azurerm_public_ip.occmpublicip.id}"
     }
 
-    tags {
+    tags = {
         environment = "OCCM Demo"
     }
 }
@@ -207,7 +208,7 @@ resource "azurerm_virtual_machine" "occmvm" {
         disable_password_authentication = false
     }    
 
-    tags {
+    tags = {
         environment = "OCCM Demo"
     }
 

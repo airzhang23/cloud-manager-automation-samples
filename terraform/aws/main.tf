@@ -2,9 +2,10 @@
 # Provider
 #################
 provider "aws" {
-  region                  = "us-west-2"
-  shared_credentials_file = "/Users/dudub/.aws"
-  profile                 = "terraform"  
+  region                     = "us-west-2"
+  shared_credentials_file    = "/root/.aws/credentials"
+  profile                    = "terraform"  
+  skip_requesting_account_id = true
 }
 
 variable "vpc_id"                  {}
@@ -30,10 +31,6 @@ data "aws_security_group" "selected" {
   id = "${var.security_group_id}"
 }
 
-data "aws_vpc" "selected" {
-  id = "${var.vpc_id}"
-}
-
 data "aws_ami" "occm_ami" {
   filter {
     name   = "name"
@@ -55,7 +52,7 @@ resource "aws_instance" "occm_example" {
   vpc_security_group_ids      = ["${data.aws_security_group.selected.id}"]
   subnet_id                   = "${data.aws_subnet.selected.id}"
   associate_public_ip_address = true
-  tags {
+  tags = {
       Name = "OCCM_example"
   }
   provisioner "local-exec" {
