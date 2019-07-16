@@ -1,0 +1,394 @@
+---
+- name: Create NKS Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    #PortalUserName: "{{ PortalUserName }}"
+    #PortalPassword: "{{ PortalPassword }}"
+    #AccessKey: "{{ AccessKey }}"
+    #SecretKey: "{{ SecretKey }}"
+    #Region: "{{Region}}"
+    #subnetId: "{{subnetId}}"
+    #refToken: "{{refToken}}"
+    #occmRefToken: "{{occmRefToken}}"
+    #OCCM_IP: "{{OCCM_IP}}"
+
+  tasks:
+  - name: Get OCCM ENV
+    uri:
+      url: http://{{OCCM_IP}}/occm/api/occm/system/about
+      method: GET
+      body_format: json
+      return_content: yes
+      timeout: 180
+      status_code: 200,201,202,204
+    register: json_response
+  - name: set  occmEnv
+    set_fact: occmEnv="{{ json_response.json.environment }}"
+  - debug: msg={{occmEnv}}
+
+  - name: Validate OCCM environment
+    fail: msg="Failed to get environment from OCCM"
+    when: occmEnv is undefined
+
+  - name: Set Environment for Staging
+    set_fact:
+      NKS_DOMAIN: api-staging.nks.netapp.io
+      AUTH0_DOMAIN: staging-netapp-cloud-account.auth0.com
+      APIclientid: VcPXCf6rPTPQsyS2oIt6SP5ZSgnUHI3S
+      ref_token_client_id: O6AHa7kedZfzHaxN80dnrIcuPBGEUvEv
+    when: occmEnv == 'staging'
+
+  - name: Set Environment for Production
+    set_fact:
+      NKS_DOMAIN: api.nks.netapp.io
+      AUTH0_DOMAIN: netapp-cloud-account.auth0.com
+      APIclientid: QC3AgHk6qdbmC7Yyr82ApBwaaJLwRrNO
+      ref_token_client_id: Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC
+    when: occmEnv == 'production'
+
+  - name: Set connectCVO to 'true' in case not provided
+    set_fact:
+      connectCVO: true
+    when: connectCVO is undefined
+
+  - name: Get Token for API with refresh
+    uri:
+      url: https://{{AUTH0_DOMAIN}}/oauth/token
+      method: POST
+      body_format: json
+      return_content: yes
+      body: {"grant_type":"refresh_token", "refresh_token": "{{refToken}}", "client_id": "{{ref_token_client_id}}"}
+      status_code: 200,204,202
+    register: json_response
+    when:  refToken is defined
+
+  - name: Set API token from refresh_token
+    set_fact: apitoken="{{ (json_response.content|from_json).access_token }}"
+    when: refToken is defined
+
+  - name: Get Token For API with credentials
+    uri:
+      url: https://{{AUTH0_DOMAIN}}/oauth/token
+      method: POST
+      body_format: json
+      return_content: yes
+      body: {"grant_type":"password","username": "{{ PortalUserName }}","password": "{{ PortalPassword }}","audience": "https://api.cloud.netapp.com", "scope": "profile", "client_id": "{{ APIclientid }}"}
+      status_code: 200,204,202
+    register: json_response
+    when: refToken is undefined
+
+  - name: Set API token from credentials
+    set_fact: apitoken="{{ (json_response.content|from_json).access_token }}"
+    when: refToken is undefined
+  - debug: msg={{ apitoken }}
+
+  - name: Get OCCM Client ID
+    uri:
+      url: http://{{OCCM_IP}}/occm/api/occm/system/support-services
+      method: GET
+      body_format: json
+      return_content: yes
+      timeout: 180
+      status_code: 200,201,202,204
+    register: json_response
+  - name: set  occmClientId
+    set_fact: occmClientId="{{ json_response.json.portalService.auth0Information.clientId }}"
+  - debug: msg={{occmClientId}}
+
+  - name: Validate OCCM Client Id
+    fail: msg="Failed to get OCCM Client ID"
+    when: occmClientId is undefined
+
+  - name: Get Token for OCCM with credentials
+    uri:
+      url: https://{{AUTH0_DOMAIN}}/oauth/token
+      method: POST
+      body_format: json
+      return_content: yes
+      body: {"grant_type":"password","username": "{{ PortalUserName }}","password": "{{ PortalPassword }}","audience": "https://cloudmanager.cloud.netapp.com", "scope": "profile", "client_id": "{{ occmClientId }}"}
+      status_code: 200,204,202
+    register: json_response
+    when: occmRefToken is undefined
+
+  - name: Set OCCM token from credentials
+    set_fact:
+      occmToken: "{{ (json_response.content|from_json).access_token }}"
+    when: occmRefToken is undefined
+
+  - name: Get Token for OCCM with refresh
+    uri:
+      url: https://{{AUTH0_DOMAIN}}/oauth/token
+      method: POST
+      body_format: json
+      return_content: yes
+      body: {"grant_type":"refresh_token", "refresh_token": "{{occmRefToken}}", "client_id": "{{ref_token_client_id}}"}
+      status_code: 200,204,202
+    register: json_response
+    when:  occmRefToken is defined
+
+  - name: Set OCCM token from refresh_token
+    set_fact: occmToken="{{ (json_response.content|from_json).access_token }}"
+    when: occmRefToken is defined
+
+  - debug: msg={{ occmToken }}
+
+  - name: Get OCCM Network Env
+    uri:
+      url: http://{{OCCM_IP}}/occm/api/occm/system/occm-instance-placement
+      method: GET
+      body_format: json
+      headers:
+        Authorization: "Bearer {{ occmToken }}"
+      return_content: yes
+      timeout: 180
+      status_code: 200,201,202,204
+    register: json_response
+    when: subnetId is undefined
+
+  - name: Set Network Env
+    set_fact:
+      Region: "{{ json_response.json.region }}"
+      subnetId: "{{ json_response.json.subnetId }}"
+    when: subnetId is undefined
+
+  - name: Exit if Region does not exists
+    fail: msg="Missing Region parameter for subnetId - {{subnetId}}"
+    when: Region is undefined
+
+  - debug: msg="Region - {{Region}}, SubnetId - {{subnetId}}"
+
+  #- name: Exit .....
+  #  fail: msg="Exit...."
+  #  when: kuku is undefined
+
+  - name: Get ORG ID
+    uri:
+      url: https://{{NKS_DOMAIN}}/orgs
+      method: GET
+      body_format: json
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+  - name: set org_id
+    set_fact: org_id="{{ json_response.json.0.pk }}"
+  - debug: msg="ORG id is - {{ org_id }}"
+
+  - name: Get AWS Keys
+    uri:
+      url: https://{{NKS_DOMAIN}}/orgs/{{org_id}}/keysets
+      method: GET
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+  - name: Get AWS keys
+    set_fact: aws_key_id="{{item.pk}}"
+    with_items: '{{json_response.json}}'
+    when: item.entity == 'aws'
+  - debug: msg="Key id is - {{ aws_key_id }}"
+    when: aws_key_id is defined
+
+  - name: "Get SSH Keys"
+    set_fact: user_ssh_keyset={{item}}
+    loop: "{{ json_response.json | json_query(ssh_query) }}"
+    vars:
+      ssh_query: "[?category=='user_ssh'].pk"
+  - debug: msg="{{user_ssh_keyset}}"
+
+  - name: Validate credentials
+    fail: msg="Failed to AWS key ID and missing AccessKey|SecretKey"
+    when: aws_key_id is undefined and (AccessKey is undefined or SecretKey is undefined)
+
+  - name: Create Keys if needed
+    uri:
+      url: https://{{NKS_DOMAIN}}/orgs/{{org_id}}/keysets
+      method: POST
+      body_format: json
+      return_content: yes
+      body: {"name":"MyKeys","category":"provider","entity":"aws","workspaces":[],"keys":[{"key_type":"pub","key":"{{AccessKey}}"},{"key_type":"pvt","key":"{{SecretKey}}"}]}
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+    when: aws_key_id is undefined
+  #- debug: msg="{{json_response}}"
+  - name: Get the final key id
+    set_fact: aws_key_id="{{ json_response.json.pk }}"
+    when: aws_key_id is undefined
+  - debug: msg="Key id to use is - {{ aws_key_id }}"
+
+  - name: Get default workspace id
+    uri:
+      url: https://{{NKS_DOMAIN}}/orgs/{{org_id}}/workspaces
+      method: GET
+      body_format: json
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+  - name: set workspace_id
+    set_fact: workspace_id="{{ json_response.json.0.pk }}"
+  - debug: msg="WorkSpace id is - {{ workspace_id }}"
+
+  - name: Get subnets
+    uri:
+      url: https://{{NKS_DOMAIN}}/provider/aws/keyset/{{aws_key_id}}/proxy?action=DescribeSubnets&region={{Region}}
+      method: GET
+      body_format: json
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+  - name: "Get SUBNET with given id"
+    set_fact: subnet={{item}}
+    loop: "{{ json_response.json | json_query(subnet_query) }}"
+    vars:
+      subnet_query: "Subnets[?SubnetId=='{{subnetId}}'].{AvailabilityZone: AvailabilityZone, CidrBlock: CidrBlock, VpcId: VpcId}"
+  - name: Exit if subnet does not exists
+    fail: msg="Failed to find given subnet - {{subnetId}}"
+    when: subnet is undefined
+  - debug: msg="{{subnet}}"
+
+  - name: Get vpcs
+    uri:
+      url: https://{{NKS_DOMAIN}}/provider/aws/keyset/{{aws_key_id}}/proxy?action=DescribeVpcs&region={{Region}}
+      method: GET
+      body_format: json
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+  #- debug: msg={{json_response}}
+
+  - name: "Get VPC with given id"
+    set_fact: vpc={{item}}
+    loop: "{{ json_response.json | json_query(vpc_query) }}"
+    vars:
+      vpc_query: "Vpcs[?VpcId=='{{subnet.VpcId}}'].{CidrBlock: CidrBlock, VpcId: VpcId}"
+  - debug: msg="{{vpc}}"
+  - name: Get user id from NKS
+    uri:
+      url: https://{{NKS_DOMAIN}}/rest-auth/user/
+      method: GET
+      body_format: json
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+  - name: Get user_id
+    set_fact: user_id="{{ json_response.json.pk }}"
+  - debug: msg="User id is - {{ user_id }}"
+
+  - name: Create AWS NKS Cluster
+    uri:
+      url: https://{{NKS_DOMAIN}}/orgs/{{org_id}}/workspaces/{{workspace_id}}/clusters
+      method: POST
+      body_format: json
+      return_content: yes
+      body: {"name":"MyCluster","provider":"aws","workspace":"{{workspace_id}}","provider_keyset":"{{aws_key_id}}","master_count":1,"master_size":"t2.large","master_root_disk_size":50,"worker_count":2,"worker_size":"t2.large","worker_root_disk_size":50,"k8s_version":"v1.14.1","k8s_dashboard_enabled":true,"k8s_rbac_enabled":true,"k8s_pod_cidr":"10.2.0.0","k8s_service_cidr":"10.3.0.0","user_ssh_keyset":"{{user_ssh_keyset}}","etcd_type":"classic","platform":"coreos","channel":"stable","region":"{{Region}}","zone":"{{subnet.AvailabilityZone}}","provider_network_id":"{{vpc.VpcId}}","provider_network_cidr":"{{vpc.CidrBlock}}","provider_subnet_id":"{{subnetId}}","provider_subnet_cidr":"{{subnet.CidrBlock}}","solutions":[{"solution":"helm_tiller","name":"Helm Tiller","installer":"","keysetRequired":false,"tag":"latest","config":{},"version":"latest"}],"owner":"{{user_id}}"}
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+    register: json_response
+  #- debug: msg="{{ json_response }}"
+  - debug: msg="Cluster id is - {{json_response.json.pk}} and state is - {{json_response.json.state}}"
+  - name: Get cluster_id
+    set_fact: cluster_id="{{ json_response.json.pk }}"
+
+  - name: Wait for Cluster creation
+    uri:
+      url: "https://{{NKS_DOMAIN}}/orgs/{{org_id}}/clusters/{{cluster_id}}"
+      method: GET
+      headers:
+         Authorization: "Bearer {{ apitoken }}"
+      status_code: 200,201,202,204
+      timeout: 180
+    register: json_response
+    until: json_response.json.state == "running"
+    retries: 15
+    delay: 60
+  - name: Print Cluster status
+    debug: msg={{json_response.json.state}}
+  - name: Exit if failed to create
+    fail: msg="Failed to create cluster"
+    when: not json_response.json.state == 'running'
+
+  - name: Download kubeconfig file
+    get_url:
+      url: https://{{NKS_DOMAIN}}/orgs/{{org_id}}/clusters/{{cluster_id}}/kubeconfig
+      dest: ./kubeconfig
+      mode: 0644
+      headers:
+        Authorization: "Bearer {{ apitoken }}"
+
+  - name: Get external clusters from occm
+    uri:
+      url: http://{{OCCM_IP}}/occm/api/k8s/external-clusters
+      method: GET
+      body_format: json
+      headers:
+         Authorization: "Bearer {{ occmToken }}"
+         Api-token: "{{ apitoken }}"
+         Referer: "Ansible"
+      return_content: yes
+      timeout: 180
+      status_code: 200,201,202,204
+    register: json_response
+
+  - name: Get k8sClusterId from occm
+    set_fact: k8sClusterId="{{ json_response.json.0.publicId }}"
+  - debug: msg="k8sClusterId - {{k8sClusterId}}"
+
+  - debug: msg="As requested will not connect the cluster to CVO automaticlly - you can do it later from OCCM"
+    when: not connectCVO
+
+    #exit here in case connectCVO is not true
+  - meta: end_play
+    when: not connectCVO
+
+  - name: Get AWS CVOs from occm
+    uri:
+      url: http://{{OCCM_IP}}/occm/api/working-environments
+      method: GET
+      body_format: json
+      headers:
+         Authorization: "Bearer {{ occmToken }}"
+      return_content: yes
+      timeout: 180
+      status_code: 200,201,202,204
+    register: json_response
+    when: connectCVO
+  - name: set we_id
+    set_fact: workingEnvironmentIds="{{ json_response.json.vsaWorkingEnvironments }}"
+    when: connectCVO
+  - debug: msg="workingEnvironmentIds is - {{ workingEnvironmentIds }}"
+    when: workingEnvironmentIds is defined
+
+  #exit here in case connectCVO is true and no CVO found
+  - meta: end_play
+    when: workingEnvironmentIds is undefined
+
+  - name: Connect CVO to NKS
+    uri:
+      url: http://{{OCCM_IP}}/occm/api/k8s/connect/{{k8sClusterId}}/{{item.publicId}}
+      method: POST
+      body_format: json
+      headers:
+         Authorization: "Bearer {{ occmToken }}"
+         Api-token: "{{ apitoken }}"
+         Referer: "Ansible"
+      body: {"ips": ["{{vpc.CidrBlock}}"],"setDefaultStorageClass": "true"}
+      return_content: yes
+      timeout: 180
+      status_code: 200,201,202,204
+    register: json_response
+    with_items: "{{workingEnvironmentIds}}"
+    loop_control:
+        pause: 120
+  - debug: msg={{json_response.msg}}
+
+  - name: Print Success msg Result
+    debug: msg="Follow audit to see the Connect progress at - http://{{OCCM_IP}}/occmui/#!/main/timeline"
