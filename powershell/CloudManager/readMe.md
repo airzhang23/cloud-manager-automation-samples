@@ -35,12 +35,16 @@ You should have the following parameters in order to deploy:
 * Refer to the following instructions on how to create a service principal and adquire these keys and IDs
   [Setting up and adding Azure accounts to Cloud Manager](https://docs.netapp.com/us-en/occm/task_adding_cloud_accounts.html#azure)
 * The required permissions are the Azure Marketplace permissions found on the [Support Site](https://mysupport.netapp.com/info/web/ECMP11022837.html) plus these additional permissions:
-	* "Microsoft.Resources/deployments/validate/action",
-	* “Microsoft.Compute/virtualMachines/extensions/write”,
-	* “Microsoft.Network/publicIpAddresses/write”,
-        * “Microsoft.Network/publicIpAddresses/read”,
-        * “Microsoft.Network/publicIPAddresses/join/action”,
-        * “Microsoft.Compute/virtualMachines/extensions/read”  
+        ```
+
+	"Microsoft.Resources/deployments/validate/action",
+	“Microsoft.Compute/virtualMachines/extensions/write”,
+	“Microsoft.Network/publicIpAddresses/write”,
+        “Microsoft.Network/publicIpAddresses/read”,
+        “Microsoft.Network/publicIPAddresses/join/action”,
+        “Microsoft.Compute/virtualMachines/extensions/read”  
+
+        ```
 * Email of user registered to [NetApp Cloud Central](https://cloud.netapp.com)
 * OCCM Refresh token of the user Go to https://services.cloud.netapp.com/refresh-token
   Generate refresh token for CloudManager ( You need to have a Cloud Central Account )
