@@ -1,0 +1,10 @@
+{
+  "workingEnvironmentId": "param",
+  "name": "param",
+  "numberOfDisks": "param",
+  "diskSize": {
+    "size": 1,
+    "unit": "TB"
+  },
+  "homeNode": "param"
+}
