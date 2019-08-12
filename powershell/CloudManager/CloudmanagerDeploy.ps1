@@ -16,22 +16,21 @@ param
   [string]$Location="East US",
 
   [parameter(Mandatory=$false, HelpMessage="Resource Group Name")]
-  [string]$ResourceGroupName="RG_TEST",
+  [string]$ResourceGroupName="CloudManager_TEST",
 
-  [parameter(Mandatory=$false, HelpMessage="Resource Group Name")]
-  [string]$refToken="xxxxxxxxxxxxxxxxxxxxxx",
+  [parameter(Mandatory=$false, HelpMessage="Refresh Token")]
+  [string]$refToken="xxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
 
-  [parameter(Mandatory=$false, HelpMessage="Resource Group Name")]
+  [parameter(Mandatory=$false, HelpMessage="Company Name")]
   [string]$company="Company",
 
-  [parameter(Mandatory=$false, HelpMessage="Resource Group Name")]
+  [parameter(Mandatory=$false, HelpMessage="Site Name")]
   [string]$site="Site",
 
-  [parameter(Mandatory=$false, HelpMessage="Resource Group Name")]
+  [parameter(Mandatory=$false, HelpMessage="Cloud Central user mail")]
   [string]$PortalUserName="email@company.com"
 
 )
-import-Module azure
 Import-Module Az
 $secApplicationKey = ConvertTo-SecureString $ApplicationKey -AsPlainText -Force
 $secureCredential = New-Object System.Management.Automation.PSCredential($ApplicationId, $secApplicationKey)
@@ -48,12 +47,11 @@ $publicIpAddressName = (Get-AzResourceGroupDeployment -ResourceGroupName $Resour
 
 $occmIP = (Get-AzPublicIpAddress -ResourceGroupName $ResourceGroupName -Name $publicIpAddressName).IpAddress
 
-Write-Host ("######  The Cloud Manager IP is: $occmIP ######")
+Write-Host ("######  The Cloud Manager IP is: $occmIP ######") -ForegroundColor Cyan
 
 Write-Host ("Waiting for OCCM: $occmIP to be up...")
 		$timeoutSeconds = 6*60 #6 minutes
 		$wait = $true
-		$occmStatus = @()
 
 		while($wait -and $timeoutSeconds -gt 0)
 		{
@@ -125,4 +123,32 @@ $initBody = '{"adminUser":{"email":"' + $PortalUserName + '"},"site":"' + $site 
 
 Invoke-RestMethod -Uri "http://$occmIP/occm/api/occm/setup-portal/init" -Method 'Post' -Body $initBody -Headers $initHeader
 
-Write-Host ("OCCM is UP and Ready")
+#Create role if not exists
+try{
+  $roleName="Cloud Manager Operator For Automation"
+  $test=Get-AzRoleDefinition $roleName
+  if ($test -eq $null) {
+    Write-Host ("$roleName Role doesn't exists, creating...")
+    $role = (Get-Content -Raw -Path ./Role/Policy_for_cloud_Manager_Azure.json | ConvertFrom-Json)
+    $role.Name = $roleName
+    $role.AssignableScopes = @("/subscriptions/$SubscriptionId")
+    $role | ConvertTo-Json | Out-File ./Role/Policy_for_cloud_Manager_Azure_updated.json
+    New-AzRoleDefinition -InputFile "./Role/Policy_for_cloud_Manager_Azure_updated.json"
+  }else{
+    Write-Host ("$roleName Role already exists")
+  }
+  # Call Azure Resource Manager to get the service principal ID for the VM's managed identity for Azure resources.
+  $vmName=(Get-AzResourceGroupDeployment -ResourceGroupName $ResourceGroupName).Parameters.virtualMachineName.Value
+  $spID = (Get-AzVM -ResourceGroupName $ResourceGroupName -Name $vmName).Identity.PrincipalId
+  Write-Host "The managed identity for Azure resources service principal ID is $spID"
+  New-AzRoleAssignment -ObjectId $spID -RoleDefinitionName $roleName -Scope "/subscriptions/$SubscriptionId" -ErrorAction Stop
+}
+catch [Microsoft.Rest.Azure.CloudException]{
+  Write-Host "Ignoring Microsoft.Rest.Azure.CloudException"
+}catch{
+    Write-Host ("Failed to assign Role to the OCCM, please do manually")
+    Write-Host ($_.Exception.Message)
+}
+
+Remove-Item -Path "./Role/Policy_for_cloud_Manager_Azure_updated.json"
+Write-Host ("OCCM is UP and Ready") -ForegroundColor Green
