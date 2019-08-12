@@ -15,9 +15,9 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
 
 *ansible-playbook createOCCM.yml --extra-vars "AWSAccessKey=[access key] AWSSecretKey=[secret Key] region=us-west-2 instancename=occmTest IAMRole='' refToken=[refresh token string] portalUserName=[portal user mail]"*
 
-* AWSAccessKey: The IP of the Cloud Manager
-* AWSSecretKey: The refresh token string
-* instancename: the name of the OCCM
+* AWSAccessKey: The AWS Access Key of the AWS account where you are deploying Cloud Manager 
+* AWSSecretKey: The AWS Secret Key of your AWS account 
+* instancename: The name you want Cloud Manager instance to have 
 * IAMRole: Name of the IAM role to assign [optional]
 * refToken: refresh for Cloud Central which was obtained earlier
 * portalUserName: Email Address to be associated with Cloud Manager. 
