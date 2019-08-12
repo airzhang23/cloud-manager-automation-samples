@@ -14,6 +14,10 @@ The following should be installed on the machine before running the script:
 Azure Power Shell
 ```
 
+### Permissions
+
+The credentials needed to run the automation need to have permissions based on "I'm deploying Cloud Manager from NetApp Cloud Central" section for AZURE in the following link: https://mysupport.netapp.com/info/web/ECMP11022837.html
+
 ### Configuration
 
 Configure the following files under config directory, verify the correct details before running the script
