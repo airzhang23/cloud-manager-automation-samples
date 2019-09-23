@@ -6,14 +6,26 @@ Go to https://services.cloud.netapp.com/refresh-token
 
 Generate refresh token for CloudManager ( You need to have a Cloud Central Account )
 
+## Get/Create Account ID Ansible
+### Steps
+1. Use the find_account.yml file to Get your account list , File is located under GetCreateAccountID , In case you dont have an Account define it will create your first Account 
+2. Need to run the follwing command with extra variables , Do not keep the square bracket in the final command.
+
+*sudo ansible-playbook  find_acount.yml --extra-vars "ApiToken=[Cloud Central Key] AccountName=[Desire New Account Name]"*
+
+* ApiToken: refresh Cloud Central API token that obtain earlier.
+* AccountName: In Case you dont have an Account define.
+
 ## Create Cloud Manager (OCCM) With Ansible
 ### Steps
 1. Use the createOCCM.yml file from above. 
 1. The file needs to be updated with the following details ( Dont edit anything else)
 **vpc, subnet, key pair, security group ( needs to be pre-created in your AWS Account ) , company and site need to be set in the playbook**
+**NOTE : OCCM creation flow need to attached to an AccountID , as part of this new flow we must provide a new paramter that called AccountID in the creation command below.
+Incase you want to know yout Account ID list or create a New Account ID , need to execute the new Ansible that called found_account.yml see instruction in section # Get Account ID  # section above  **
 1. We need to run the following command to create Cloud Manager ( The variables needed for the command are mentioned below along with description. Do not keep the square brackets in the final command )
 
-*ansible-playbook createOCCM.yml --extra-vars "AWSAccessKey=[access key] AWSSecretKey=[secret Key] region=us-west-2 instancename=occmTest IAMRole='' refToken=[refresh token string] portalUserName=[portal user mail]"*
+*ansible-playbook createOCCM.yml --extra-vars "AWSAccessKey=[access key] AWSSecretKey=[secret Key] region=us-west-2 instancename=occmTest IAMRole='' refToken=[refresh token string] portalUserName=[portal user mail] AccountID=[account-xxxxxxx]"*
 
 * AWSAccessKey: The AWS Access Key of the AWS account where you are deploying Cloud Manager 
 * AWSSecretKey: The AWS Secret Key of your AWS account 
@@ -21,6 +33,8 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
 * IAMRole: Name of the IAM role to assign [optional]
 * refToken: refresh for Cloud Central which was obtained earlier
 * portalUserName: Email Address to be associated with Cloud Manager. 
+
+
 
 
 ## Create AWS Single Node CVO With Ansible
