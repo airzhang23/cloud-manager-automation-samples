@@ -5,10 +5,10 @@
   gather_facts: False
   vars:
       instance_type: t3.medium
-      security_group: sg-3de44458 #default
-      keypair: occm_qa
-      vpc_id: vpc-a76d91c2
-      subnet_id: subnet-39536c13
+      security_group: sg-XXXXXXXX #default
+      keypair: key_pair_name
+      vpc_id: vpc-XXXXXXXX
+      subnet_id: subnet-XXXXXXXX
       site: test
       company: Company
       count: 1
