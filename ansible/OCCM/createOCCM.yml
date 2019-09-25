@@ -44,7 +44,7 @@
     - debug: msg={{latest_ami_id}}
     - name: Set Account ID 
       register: AccountID
-      fail: msg="Failed to get AccountID parameter "
+      fail: msg="Account ID paramter is mandatory "
       when: AccoundID is undefined
           
 # Deploy OCCM Instance from AMI

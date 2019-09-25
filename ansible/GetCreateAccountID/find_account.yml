@@ -8,9 +8,6 @@
 # Production
    client_id: Mu0V1ywgYteI6w1MbD15fKfVIUrNXGWC
    auth0_domain: netapp-cloud-account.auth0.com
-# Staging
-  #    client_id: O6AHa7kedZfzHaxN80dnrIcuPBGEUvEv
-  #    auth0_domain: staging-netapp-cloud-account.auth0.com
 
   tasks:
 #Get Token
