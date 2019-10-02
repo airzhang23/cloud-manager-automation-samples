@@ -16,7 +16,7 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
 * ApiToken: refresh Cloud Central API token that obtain earlier.
 * AccountName: In Case you dont have an Account define.
 
-... Example of output : 
+``` Example of output : 
     ok: [localhost] => {
         "msg": [
             {
@@ -31,7 +31,7 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
             }
         ]
     }
-...
+```
 ## Create Cloud Manager (OCCM) With Ansible
 ### Steps
 1. Use the createOCCM.yml file from above. 
