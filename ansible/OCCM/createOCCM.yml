@@ -7,7 +7,7 @@
       instance_type: t3.medium
       security_group: sg-XXXXXXXX #default
       keypair: key_pair_name
-      vpc_id: vpc-XXXXXXXXX
+      vpc_id: vpc-XXXXXXXX
       subnet_id: subnet-XXXXXXXX
       site: test
       company: Company
@@ -42,6 +42,11 @@
     - set_fact:
         latest_ami_id: "{{ latest_ami.image_id }}"    
     - debug: msg={{latest_ami_id}}
+    - name: Set Account ID 
+      register: AccountID
+      fail: msg="Account ID paramter is mandatory "
+      when: AccoundID is undefined
+          
 # Deploy OCCM Instance from AMI
     - name: Launch OCCM instance
       local_action:
@@ -118,7 +123,7 @@
         headers:
            Authorization: "{{token_type}} {{ token }}"
            Referer: Ansible
-        body: {"adminUser":{"email":"{{portalUserName}}"},"site":"{{site}}","company":"{{company}}"}
+        body: {"adminUser":{"email":"{{portalUserName}}"},"site":"{{site}}","company":"{{company}}","tenancyAccountId":"{{AccountID}}" }
         status_code: 200,204,202
         timeout: 180
       register: setup_response  
