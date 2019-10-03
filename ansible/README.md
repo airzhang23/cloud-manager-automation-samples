@@ -11,7 +11,7 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
 1. Use the find_account.yml file to Get your account list , File is located under GetCreateAccountID , In case you dont have an Account define it will create your first Account 
 2. Need to run the follwing command with extra variables , Do not keep the square bracket in the final command.
 
-*sudo ansible-playbook  find_acount.yml --extra-vars "ApiToken=[Cloud Central Key] AccountName=[Desire New Account Name]"*
+*sudo ansible-playbook  account_subscriptions.yml --extra-vars "ApiToken=[Cloud Central Key] AccountName=[Desire New Account Name]"*
 
 * ApiToken: refresh Cloud Central API token that obtain earlier.
 * AccountName: In Case you dont have an Account define.
@@ -31,6 +31,13 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
             }
         ]
     }
+
+
+
+TASK [Get Subscriptions for account account-xxxxxxx] ***************************************************************************************************************************
+ok: [localhost] => (item={'cloudProvider': 'aws', 'subscriptionName': 'Prod Account Subscription', 'subscriptionId': 'aws-XXXXXXXXXXXXXXXX-FFFFFFFFFF'})
+ok: [localhost] => (item={'cloudProvider': 'gcp', 'subscriptionName': 'GCP SUBSCRIPTION', 'subscriptionId': 'gcp-none-yet-123456789'})
+
 ```
 ## Create Cloud Manager (OCCM) With Ansible
 ### Steps
