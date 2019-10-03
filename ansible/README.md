@@ -8,7 +8,7 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
 
 ## Get/Create Account ID Ansible
 ### Steps
-1. Use the find_account.yml file to Get your account list , File is located under GetCreateAccountID , In case you dont have an Account define it will create your first Account 
+1. Use the account_subscriptions.yml file to Get your account list , File is located under GetAccountsAndSubscriptions , In case you dont have an Account define it will create your first Account
 2. Need to run the follwing command with extra variables , Do not keep the square bracket in the final command.
 
 *sudo ansible-playbook  account_subscriptions.yml --extra-vars "ApiToken=[Cloud Central Key] AccountName=[Desire New Account Name]"*
@@ -16,7 +16,7 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
 * ApiToken: refresh Cloud Central API token that obtain earlier.
 * AccountName: In Case you dont have an Account define.
 
-``` Example of output : 
+``` Example of output :
     ok: [localhost] => {
         "msg": [
             {
@@ -34,14 +34,14 @@ Generate refresh token for CloudManager ( You need to have a Cloud Central Accou
 
 
 
-TASK [Get Subscriptions for account account-xxxxxxx] ***************************************************************************************************************************
+TASK [Get Subscriptions for account account-xxxxxxx] **********************************************************************************************************
 ok: [localhost] => (item={'cloudProvider': 'aws', 'subscriptionName': 'Prod Account Subscription', 'subscriptionId': 'aws-XXXXXXXXXXXXXXXX-FFFFFFFFFF'})
 ok: [localhost] => (item={'cloudProvider': 'gcp', 'subscriptionName': 'GCP SUBSCRIPTION', 'subscriptionId': 'gcp-none-yet-123456789'})
 
 ```
 ## Create Cloud Manager (OCCM) With Ansible
 ### Steps
-1. Use the createOCCM.yml file from above. 
+1. Use the createOCCM.yml file from above.
 1. The file needs to be updated with the following details ( Dont edit anything else)
 **vpc, subnet, key pair, security group ( needs to be pre-created in your AWS Account ) , company and site need to be set in the playbook**
 **NOTE : OCCM creation flow need to attached to an AccountID , as part of this new flow we must provide a new paramter that called AccountID in the creation command below.
@@ -50,12 +50,12 @@ Incase you want to know yout Account ID list or create a New Account ID , need t
 
 *ansible-playbook createOCCM.yml --extra-vars "AWSAccessKey=[access key] AWSSecretKey=[secret Key] region=us-west-2 instancename=occmTest IAMRole='' refToken=[refresh token string] portalUserName=[portal user mail] AccountID=[account-xxxxxxx]"*
 
-* AWSAccessKey: The AWS Access Key of the AWS account where you are deploying Cloud Manager 
-* AWSSecretKey: The AWS Secret Key of your AWS account 
-* instancename: The name you want Cloud Manager instance to have 
+* AWSAccessKey: The AWS Access Key of the AWS account where you are deploying Cloud Manager
+* AWSSecretKey: The AWS Secret Key of your AWS account
+* instancename: The name you want Cloud Manager instance to have
 * IAMRole: Name of the IAM role to assign [optional]
 * refToken: refresh for Cloud Central which was obtained earlier
-* portalUserName: Email Address to be associated with Cloud Manager. 
+* portalUserName: Email Address to be associated with Cloud Manager.
 
 
 
@@ -85,7 +85,7 @@ Incase you want to know yout Account ID list or create a New Account ID , need t
 * occmIp: The IP of the Cloud Manager
 * refToken: The refresh token string
 * aggregateName: The name of the aggregate to create
-* providerType: The disk type to create [gp2|st1|sc1] 
+* providerType: The disk type to create [gp2|st1|sc1]
 * diskSize: disk size to create in TB [1|2|4|8|16]
 
 *ansible-playbook createAggregate.yml --extra-vars "occmIp=[Cloud Manager IP] refToken=[refresh token string] aggregateName=aggr2 providerType=gp2 diskSize=1"*
@@ -95,12 +95,11 @@ Incase you want to know yout Account ID list or create a New Account ID , need t
 * occmIp: The IP of the Cloud Manager
 * refToken: The refresh token string
 * volName: The name of the volume to create
-* providerType: The disk type for the volume [gp2|st1|sc1] 
+* providerType: The disk type for the volume [gp2|st1|sc1]
 * volSize: The size of the volume in GB [1|2|4|8|16]
 
 *ansible-playbook createVolume.yml --extra-vars "occmIp=[Cloud Manager IP] refToken=[refresh token string] volName=kuku providerType=gp2 volSize=100"*
 
 ## Authors
 
-* **TLV DevOps Team** - *Initial work* 
-
+* **TLV DevOps Team** - *Initial work*
