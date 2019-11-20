@@ -6,7 +6,8 @@ zone_id                 = ""                                             # GCP z
 region_id               = ""                                             # GCP region 
 project_id              = ""                                             # GCP project
 ###################################################
-image_occm              = ""                                             # occm image name on GCP 
+project_occm            = "tlv-automation"                               # occm project name on GCP 
+family_occm             = "cloudmanager"                                 # occm family name on GCP
 machine_type            = "n1-standard-2"                                # instance type
 ###################################################
 ansible_provision_file  = "../../ansible/OCCM/occm_setup.yaml"           # deafult path to absibel playbook file 

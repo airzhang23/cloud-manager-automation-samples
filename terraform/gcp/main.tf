@@ -1,22 +1,28 @@
 
 
-variable "project_id"        {}
-variable "region_id"            {}
-variable "zone_id"            {}
-variable "image_occm"        {}
-variable "machine_type"          {}
+variable "project_id"             {}
+variable "region_id"              {}
+variable "zone_id"                {}
+variable "project_occm"           {}
+variable "family_occm"            {}
+variable "machine_type"           {}
 variable "ansible_provision_file" {}
 variable "refresh_token"          {}
 variable "client_id"              {}
 variable "portal_user_name"       {}
 variable "auth0_domain"           {}
-variable "gcp_json_auth_path"           {}
+variable "gcp_json_auth_path"     {}
 
 provider "google" {
   credentials = "${file("${var.gcp_json_auth_path}")}"
   project = "${var.project_id}"  
   region  = "${var.region_id}"
   zone    = "${var.zone_id}"
+}
+
+data "google_compute_image" "my_image" {
+  family  = "${var.family_occm}"
+  project = "${var.project_occm}"
 }
 
 resource "google_compute_instance" "occm-instance" {
@@ -26,7 +32,7 @@ resource "google_compute_instance" "occm-instance" {
   
   boot_disk {
     initialize_params {
-      image = "${var.image_occm}"
+      image = data.google_compute_image.my_image.self_link
     } 
   }
 
