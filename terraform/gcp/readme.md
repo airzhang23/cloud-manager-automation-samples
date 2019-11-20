@@ -44,7 +44,8 @@
     region_id               = ""                                 # gcp region
     project_id              = ""                                 # gcp project
     ###################################################
-    image_occm              = ""                                 # latest occm image
+    project_occm            = "tlv-automation"                   # occm project name on GCP
+    family_occm             = "cloudmanager"                     # occm family name on GCP    
     machine_type            = "n1-standard-2"                    # compute instance type
     ###################################################
     ansible_provision_file  = "./occm_setup.yaml"                # path to ansible playbook file
