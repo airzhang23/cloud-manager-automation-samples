@@ -1,6 +1,6 @@
 # Samples for Terraform + Ansible and Cloud Manager
 ##
-## Create OCCM With Terraform + Ansible on Azure
+## Create OCCM With Terraform + Ansible on GCP
 ##
 ##
 
@@ -9,7 +9,7 @@
 * Follow the instructions and add terraform executable to PATH: https://learn.hashicorp.com/terraform/getting-started/install.html
 
 * Install Ansible >2.7 from: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html  
-* Install Ansible Azure extension from: https://docs.ansible.com/ansible/latest/scenario_guides/guide_azure.html
+* Install Ansible GCP extension from: https://docs.ansible.com/ansible/latest/scenario_guides/guide_gce.html
 * Here is an example installtion on Centos 7.5:
   ```terraform
   # curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
