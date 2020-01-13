@@ -3,7 +3,7 @@ import requests
 import json
 
 url = 'https://releases.hashicorp.com/terraform/index.html'
-data = requests.get(url, allow_redirects=True)
+data = requests.get(url, allow_redirects=True, verify = False)
 soup = BeautifulSoup(data.text,'html.parser')
 
 inner_ul = soup.find('ul')
