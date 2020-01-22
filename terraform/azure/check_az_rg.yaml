@@ -5,11 +5,11 @@
   gather_facts: False  
   tasks:
     - name: get az ResourceGroup facts
-      azure_rm_resourcegroup_facts:
+      azure_rm_resourcegroup_info:
         name: "{{az_rg}}"
       register: azure_resourcegroups
     - name: get az VirtualNetwork facts
-      azure_rm_virtualnetwork_facts:
+      azure_rm_virtualnetwork_info:
         resource_group: "{{az_rg}}"
         name: "{{az_vn}}"
       register: azure_virtualnetworks       
