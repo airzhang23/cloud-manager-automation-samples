@@ -8,6 +8,7 @@
       azure_rm_resourcegroup_info:
         name: "{{az_rg}}"
       register: azure_resourcegroups_response
+    - debug: msg={{azure_resourcegroups_response}}      
     - name: get az VirtualNetwork facts
       azure_rm_virtualnetwork_info:
         resource_group: "{{az_rg}}"
