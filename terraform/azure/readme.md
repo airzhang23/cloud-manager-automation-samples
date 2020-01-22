@@ -14,13 +14,13 @@
   export ARM_SUBSCRIPTION_ID="xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" && export AZURE_SUBSCRIPTION_ID=$ARM_SUBSCRIPTION_ID
   export ARM_TENANT_ID="xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" && export AZURE_TENANT=$ARM_TENANT_ID
   ```    
-* Install Ansible >2.7 from: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html  
+* Install Ansible >2.9 from: https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html  
 * Install Ansible Azure extension from: https://docs.ansible.com/ansible/latest/scenario_guides/guide_azure.html
 * Here is an example installtion on Centos 7.5:
   ```terrafrom
   # curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
   # python get-pip.py
-  # pip install ansible==2.7
+  # pip install ansible==2.9
   # pip install 'ansible[azure]'
   # wget https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
   # unzip terraform_0.11.13_linux_amd64.zip
@@ -29,12 +29,12 @@
 * Check Ansible and Terraform versions Installed:
   ```terrafrom
   # ansible --version
-    ansible 2.7.0
+    ansible 2.9.2
       config file = None
       configured module search path = [u'/root/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
-      ansible python module location = /usr/lib/python2.7/site-packages/ansible
+      ansible python module location = /usr/lib/python3.6/site-packages/ansible
       executable location = /bin/ansible
-      python version = 2.7.5 (default, Oct 30 2018, 23:45:53) [GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]
+      python version = 3.6.3 (default, Oct 30 2018, 23:45:53) [GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]
   # terraform version
   Terraform v0.11.13
   + provider.azurerm v1.23.0
