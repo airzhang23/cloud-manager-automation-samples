@@ -15,9 +15,9 @@
         name: "{{az_vn}}"
       register: azure_virtualnetworks_response       
     - name: set list_length
-      set_fact: rg_exists="{{ azure_resourcegroups_response.azure_resourcegroups | length | bool }}"
-    - set_fact: vn_exists="{{ azure_virtualnetworks_response.azure_virtualnetworks | length | bool }}"
-    - set_fact: sn_exists="{{ az_sn in (azure_virtualnetworks_response.azure_virtualnetworks | json_query("[].properties.subnets[].name")) }}"
+      set_fact: rg_exists="{{ azure_resourcegroups_response.resourcegroups | length | bool }}"
+    - set_fact: vn_exists="{{ azure_virtualnetworks_response.virtualnetworks | length | bool }}"
+    - set_fact: sn_exists="{{ az_sn in (azure_virtualnetworks_response.virtualnetworks | json_query("[].properties.subnets[].name")) }}"
     - set_fact: exists_resources="{{ use_existing_resources | bool }}"
     - name: Check for Errors
       fail:
