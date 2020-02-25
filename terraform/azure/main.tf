@@ -156,7 +156,7 @@ resource "azurerm_network_interface" "occmnic" {
     name                      = "OccmNICDEMO111110"
     location                  = "${var.location_id}"
     resource_group_name       = "${data.azurerm_resource_group.occmgroup.name}"
-    network_security_group_id = "${azurerm_network_security_group.occmnsg.id}"
+    #network_security_group_id = "${azurerm_network_security_group.occmnsg.id}"
 
     ip_configuration {
         name                          = "myNicConfigurationDEMO111110"
