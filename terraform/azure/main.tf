@@ -34,7 +34,7 @@ resource "null_resource" "ansible-prerequisites" {
 
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-    subscription_id  = ${var.subscription_id}
+    subscription_id  = var.subscription_id
     version = "=2.0.0"
     features {}
 }
