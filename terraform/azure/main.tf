@@ -34,13 +34,9 @@ resource "null_resource" "ansible-prerequisites" {
 
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-    subscription_id  = "${var.subscription_id}"
+    subscription_id  = ${var.subscription_id}
     version = "=2.0.0"
     features {}
-    #version = "=2.0.0"
-#    client_id       = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-#    client_secret   = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-#    tenant_id       = "xxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
 
 # Create a resource group
@@ -48,13 +44,13 @@ resource "azurerm_resource_group" "occmgroup" {
   count      = "${var.use_existing_resources ? 0 : 1}"  
   name       = "${var.resource_group}"
   location   = "${var.location_id}"
-  depends_on = ["null_resource.ansible-prerequisites"]
+  depends_on = [null_resource.ansible-prerequisites]
 }
 
 # Create a resource group
 data "azurerm_resource_group" "occmgroup" {
   name     = "${var.use_existing_resources ? var.resource_group : join("", azurerm_resource_group.occmgroup.*.name)}"
-  depends_on = ["null_resource.ansible-prerequisites"]
+  depends_on = [null_resource.ansible-prerequisites]
 }
 
 # Create a virtual network within the resource group
@@ -156,7 +152,6 @@ resource "azurerm_network_interface" "occmnic" {
     name                      = "OccmNICDEMO111110"
     location                  = "${var.location_id}"
     resource_group_name       = "${data.azurerm_resource_group.occmgroup.name}"
-    #network_security_group_id = "${azurerm_network_security_group.occmnsg.id}"
 
     ip_configuration {
         name                          = "myNicConfigurationDEMO111110"
