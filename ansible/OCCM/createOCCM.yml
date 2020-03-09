@@ -45,7 +45,7 @@
     - name: Set Account ID 
       register: AccountID
       fail: msg="Account ID paramter is mandatory "
-      when: AccoundID is undefined
+      when: AccountID is undefined
           
 # Deploy OCCM Instance from AMI
     - name: Launch OCCM instance
