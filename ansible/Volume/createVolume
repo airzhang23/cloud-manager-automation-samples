@@ -94,16 +94,23 @@
       debug: msg={{vol_response.oncloud_request_id}}
     - name: Wait for Volume creation
       uri:
-        url: "http://{{occm_ip}}/occm/api/audit/{{vol_response.oncloud_request_id}}"
+        url: "http://{{occm_ip}}/occm/api/audit/activeTask/{{vol_response.oncloud_request_id}}"
         method: GET
         headers:
            Authorization: "{{token_type}} {{ token }}"
            Referer: "Ansible"
         status_code: 200,204,202
+        body_format: json
         timeout: 180
       register: audit_response
-      until: audit_response.json.0.status != "Received"
+      until: audit_response.json.status != 0
       retries: 10
       delay: 20
-    - name: Print Create Volume response
-      debug: msg={{audit_response.json.0.status}}         
+    - name: set response
+      set_fact: status="{{ audit_response.json.status }}"
+    - name: Print Volume Result
+      debug: msg="Done Success"
+      when: status == '1'
+    - name: Print Volume Result
+      debug: msg="Done Error"
+      when: status == '-1'

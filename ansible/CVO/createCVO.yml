@@ -62,16 +62,25 @@
     - debug: msg={{otc_response.json.publicId}}
     - name: Wait for OTC
       uri:
-        url: "http://{{occm_ip}}/occm/api/audit/{{otc_response.oncloud_request_id}}"
+        url: "http://{{occm_ip}}/occm/api/audit/activeTask/{{otc_response.oncloud_request_id}}"
         method: GET
         headers:
            Authorization: "{{token_type}} {{ token }}"
            Referer: "Ansible"
         status_code: 200,204,202
+        body_format: json
         timeout: 180
       register: audit_response
-      until: audit_response.json.0.status != "Received"
+      until: audit_response.json.status != 0
       retries: 27
       delay: 60
-    - name: Print OTC
-      debug: msg={{audit_response.json.0.status}}
+    - name: Print Audit Response
+      debug: msg={{audit_response}}
+    - name: set response
+      set_fact: status="{{ audit_response.json.status }}"
+    - name: Print Result
+      debug: msg="Done Success"
+      when: status == '1'
+    - name: Print Result
+      debug: msg="Done Error"
+      when: status == '-1'
